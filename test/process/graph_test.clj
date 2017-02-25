@@ -6,7 +6,7 @@
 (def ^:private de-normalized (graph/de-normalize fixtures/integration-process))
 
 (deftest nodes-test
-  (testing "Every node has a transition function after denormalisation"
+  (testing "Every node has a transition function after denormalization"
     (is (every? (comp fn? :transition) de-normalized)))
   (testing "Every node has a `:type` key present"
     (is (every? :type de-normalized))))
