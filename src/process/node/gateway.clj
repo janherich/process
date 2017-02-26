@@ -6,7 +6,8 @@
   "Helper function which adapts gateway propagate function to generic node transition function."
   [propagate]
   (fn [ctx]
-    [(propagate ctx) ctx]))
+    (when-let [outgoing-edges (propagate ctx)]
+      [outgoing-edges ctx])))
 
 (defmethod node/expand :gateway/parallel [{:keys [incoming outgoing] :as node-spec}]
   (assoc node-spec :transition (propagate-to-transition

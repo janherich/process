@@ -1,5 +1,6 @@
 (ns process.execution
-  (:require [clojure.core.async :as async :refer [go <! close!]]))
+  (:require [clojure.set :as s]
+            [clojure.core.async :as async :refer [go <! close!]]))
 
 (defn- prepare-context
   [ctx node-id node-inputs execution-edges]
@@ -17,40 +18,42 @@
 
 (declare step-execution)
 
-(defn- proceed-executions!
-  "Update runtime state and fire off new executions."
-  [old-execution new-executions new-context {:keys [runtime-state] :as process-instance}]
-  (swap! runtime-state
-         (fn [state]
-           (-> state
-               (assoc :context (clean-context new-context))
-               (update :execution-edges #(-> % (disj old-execution) (into new-executions))))))
-  (if (:process.node.event/finished? new-context)
-    (terminate-execution! process-instance)
-    (doseq [edge new-executions]
-      (step-execution edge process-instance))))
+(defn- transition-node!
+  "Update process runtime state and fire off new executions according to node transition result."
+  [{:keys [incoming] :as node} [outgoing-edges new-context] {:keys [runtime-state] :as process-instance}]
+  (let [cleaned-context (clean-context new-context)]
+    (swap! runtime-state
+           (fn [state]
+             (-> state
+                 (update :context merge cleaned-context)
+                 (update :execution-edges #(-> % (s/difference incoming) (into outgoing-edges)))
+                 (update :process-history conj {:context cleaned-context
+                                                :node node}))))
+    (if (:process.node.event/finished? new-context)
+      (terminate-execution! process-instance)
+      (doseq [edge outgoing-edges]
+        (step-execution edge process-instance)))))
 
 (defn- channel? [c]
   (instance? clojure.core.async.impl.protocols.Channel c))
 
 (defn- go-async
   "Wait till the resume channel delivers transition update, restart execution after that"
-  [resume-channel execution-edge process-instance]
+  [node resume-channel process-instance]
   (go
-    (when-let [[outgoing-edges updated-context] (<! resume-channel)]
-      (proceed-executions! execution-edge outgoing-edges updated-context process-instance))))
+    (when-let [transition-result (<! resume-channel)]
+      (transition-node! node transition-result process-instance))))
 
 (defn- step-execution
   [{:keys [from to] :as execution-edge}
    {:keys [id->nodes node-inputs runtime-state] :as process-instance}]
   (let [{:keys [execution-edges context]} @runtime-state]
     (when-not (:process.node.event/finished? context)
-      (let [{:keys [transition id]} (get id->nodes to)
+      (let [{:keys [transition id] :as node} (get id->nodes to)
             transition-result (transition (prepare-context context id node-inputs execution-edges))]
-        (if (channel? transition-result)
-          (go-async transition-result execution-edge process-instance)
-          (let [[outgoing-edges updated-context] transition-result]
-            (proceed-executions! execution-edge outgoing-edges updated-context process-instance)))))))
+        (cond
+          (channel? transition-result) (go-async node transition-result process-instance)
+          transition-result (transition-node! node transition-result process-instance))))))
 
 (defn execute-process-instance!
   "Runs execution on provided process-instance, returns runtime-state atom."

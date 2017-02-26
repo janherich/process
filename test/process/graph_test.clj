@@ -1,6 +1,6 @@
 (ns process.graph-test
   (:require [clojure.test :refer :all]
-            [process.core-test :as fixtures]
+            [process.test-data :as fixtures]
             [process.graph :as graph]))
 
 (def ^:private de-normalized (graph/de-normalize fixtures/integration-process))

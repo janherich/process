@@ -26,7 +26,8 @@
         nodes))
 
 (defn create
-  "Create process instance, normalizing data, initializing input channels and execution-edges."
+  "Create process instance, normalizing data, initializing input channels, execution-edges
+   and process history queue."
   [{:keys [process-graph] :as process-definition}]
   (let [process-input (chan)
         nodes (graph/de-normalize process-graph)]
@@ -37,4 +38,5 @@
      :node-inputs (node-inputs process-input nodes)
      :process-input process-input
      :runtime-state (atom {:context {}
-                           :execution-edges (initialize-execution-edges nodes)})}))
+                           :execution-edges (initialize-execution-edges nodes)
+                           :process-history clojure.lang.PersistentQueue/EMPTY})}))
