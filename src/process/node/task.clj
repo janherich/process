@@ -1,4 +1,5 @@
 (ns process.node.task
+  "Task type nodes, representing external input/output of the process."
   (:require [clojure.core.async :as async :refer [go <!]]
             [process.node :as node]))
 

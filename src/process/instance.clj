@@ -1,4 +1,5 @@
 (ns process.instance
+  "Creating/initializing process instances."
   (:require [clojure.core.async :as async :refer [chan pub sub]]
             [process.graph :as graph]))
 

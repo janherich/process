@@ -1,4 +1,5 @@
 (ns process.node.event
+  "Event type nodes, such as start/end of the process."
   (:require [process.node :as node]))
 
 (defmethod node/expand :event/start [{:keys [outgoing] :as node-spec}]

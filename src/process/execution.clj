@@ -1,4 +1,7 @@
 (ns process.execution
+  "Process execution engine. Executes process instances, handling node
+   transition functions, maintaining process history queue and support for
+   asynchronous process execution."
   (:require [clojure.set :as s]
             [clojure.core.async :as async :refer [go <! close!]]))
 
@@ -45,6 +48,7 @@
       (transition-node! node transition-result process-instance))))
 
 (defn- step-execution
+  "Recursively step through process nodes."
   [{:keys [from to] :as execution-edge}
    {:keys [id->nodes node-inputs runtime-state] :as process-instance}]
   (let [{:keys [execution-edges context]} @runtime-state]

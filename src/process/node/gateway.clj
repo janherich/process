@@ -1,4 +1,6 @@
 (ns process.node.gateway
+  "Gateway nodes, resposible solely for routing and synchronizing executions, without
+   changing context map."
   (:require [clojure.set :as set]
             [process.node :as node]))
 

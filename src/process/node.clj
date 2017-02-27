@@ -1,4 +1,6 @@
-(ns process.node)
+(ns process.node
+  "Generic process node functionality. Expand multimethod should be extended for
+   any node types with behavior which is not covered by built-in node types.")
 
 (defmulti expand
   "Expands sparse node-spec into full node specification, mainly filling in the node-transition
