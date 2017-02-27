@@ -6,8 +6,8 @@
 (defmethod node/expand :task/input [{:keys [context-key outgoing] :as node-spec}]
   (-> node-spec
       (assoc :transition (fn [{:keys [node-input] :as ctx}]
-                           (go (let [input (<! node-input)]
-                                 [outgoing (assoc ctx context-key input)]))))
+                           (go (let [{:keys [data actor]} (<! node-input)]
+                                 [outgoing (assoc ctx context-key data) actor]))))
       (dissoc :context-key)))
 
 (defmethod node/expand :task/action [{:keys [action-fn outgoing] :as node-spec}]

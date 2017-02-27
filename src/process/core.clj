@@ -83,7 +83,7 @@
                    4 (chan)}}))
 
 (comment
-  (put! (:process-input process-instance) {:task-id 3 :message true}))
+  (put! (:process-input process-instance) {:node-id 3 :data true :actor "Smith"}))
 
 (comment
   "Process entity relations"
@@ -92,6 +92,6 @@
   ProcessGraph    <-one-to-many-> GraphEdge
   GraphEdge       <-one-to-two>   GraphNode
   Process         <-one-to-many-> ProcessInstance
-  ProcessInstance <-one-to-many-> ExecutionPath)
+  ProcessInstance <-one-to-many-> ExecutionEdge)
 
 (def process-instance (instance/create process-v2))

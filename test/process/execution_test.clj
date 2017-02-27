@@ -21,7 +21,7 @@
       (is (= {:execution-edges #{{:from 1 :to 2}}
               :context {:project-files-size 200}}
              (select-keys @runtime-state [:execution-edges :context])))
-      (put! process-input {:node-id 2 :data true})
+      (put! process-input {:node-id 2 :data true :actor "Smith"})
       (wait-for-finished runtime-state)
       (is (= {:execution-edges #{}
               :context {:project-files-size 200
@@ -32,6 +32,9 @@
     (testing "Process history is written in the queue"
       (is (= '(1 2 3 4 5)
              (map (comp :id :node) (:process-history @runtime-state)))))
+    (testing "Actors are written into process history"
+      (is (= '(:process.execution/process "Smith" :process.execution/process)
+             (take 3 (map :actor (:process-history @runtime-state))))))
     (testing "Process input channel is closed when process instance is finished"
       (is (not (put! process-input "put! returns false if channel is already closed"))))))
 

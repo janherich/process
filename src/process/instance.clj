@@ -12,7 +12,7 @@
                      (map :id))
                (completing
                 (fn [acc task-id]
-                  (let [task-channel (chan 1 (map :data))]
+                  (let [task-channel (chan 1 (map #(select-keys % [:data :actor])))]
                     (sub subscription task-id task-channel)
                     (assoc acc task-id task-channel))))
                {}

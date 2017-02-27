@@ -23,15 +23,17 @@
 
 (defn- transition-node!
   "Update process runtime state and fire off new executions according to node transition result."
-  [{:keys [incoming] :as node} [outgoing-edges new-context] {:keys [runtime-state] :as process-instance}]
-  (let [cleaned-context (clean-context new-context)]
+  [{:keys [incoming] :as node} [outgoing-edges new-context actor] {:keys [runtime-state] :as process-instance}]
+  (let [cleaned-context (clean-context new-context)
+        actor (or actor ::process)]
     (swap! runtime-state
            (fn [state]
              (-> state
                  (update :context merge cleaned-context)
                  (update :execution-edges #(-> % (s/difference incoming) (into outgoing-edges)))
                  (update :process-history conj {:context cleaned-context
-                                                :node node}))))
+                                                :node node
+                                                :actor actor}))))
     (if (:process.node.event/finished? new-context)
       (terminate-execution! process-instance)
       (doseq [edge outgoing-edges]
